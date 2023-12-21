@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Input, Button, Card, Row, Col, Modal } from 'antd';
-import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons'; // Import icons from Ant Design
+import { Input, Button, Card, Row, Col, Modal, Pagination } from 'antd';
+import { CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import axios from 'axios';
 
 const { Meta } = Card;
@@ -12,6 +12,8 @@ const SocialMediaSearch = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
   // Backend API endpoint for image submission
   const API_ENDPOINT = 'http://localhost:4000/content/add';
@@ -19,10 +21,10 @@ const SocialMediaSearch = () => {
   const handleSearch = async () => {
     try {
       const response = await fetch(
-        `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=4`,
+        `https://api.pexels.com/v1/search?query=${searchQuery}&per_page=70`,
         {
           headers: {
-            Authorization: `jqgJo7c07JRlr9J2yHrK27CH0mg4Fibyn24ttA24dzXvNL0vF3V3Huv9}`,
+            Authorization: 'jqgJo7c07JRlr9J2yHrK27CH0mg4Fibyn24ttA24dzXvNL0vF3V3Huv9',
           },
         }
       );
@@ -56,14 +58,11 @@ const SocialMediaSearch = () => {
       });
 
       if (response.status >= 200 && response.status < 300) {
-       
         setSubmitSuccess(true);
       } else {
-        
         setSubmitError(true);
       }
     } catch (error) {
-  
       console.error('Error submitting image:', error.message);
 
       if (error.response) {
@@ -84,6 +83,16 @@ const SocialMediaSearch = () => {
     setSubmitError(false);
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPaginatedPhotos = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return photoData.slice(startIndex, endIndex);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* About Section */}
@@ -98,15 +107,15 @@ const SocialMediaSearch = () => {
           placeholder="Enter search query"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ marginBottom: 16, width: 300 }}
+          style={{ marginBottom: 25, width: 300 }}
         />
         <Button type="primary" onClick={handleSearch} style={{ width: 100 }}>
           Search
         </Button>
         <br />
-        {photoData.length > 0 && (
+        {renderPaginatedPhotos().length > 0 && (
           <Row gutter={[16, 16]}>
-            {photoData.map((photo) => (
+            {renderPaginatedPhotos().map((photo) => (
               <Col key={photo.id} xs={24} sm={12} md={8} lg={6}>
                 <Card
                   hoverable
@@ -165,6 +174,23 @@ const SocialMediaSearch = () => {
       >
         <p>There was an error submitting your image. Please try again later.</p>
       </Modal>
+
+      {/* Pagination */}
+      {photoData.length > 0 && (
+        <Pagination
+          current={currentPage}
+          total={photoData.length}
+          pageSize={pageSize}
+          onChange={handlePageChange}
+          style={{ marginTop: '16px', textAlign: 'center' }}
+        />
+      )}
+
+<br />
+      {/* Footer */}
+      <div style={{ padding: 16, backgroundColor: '#f0f0f0', width: '100%', textAlign: 'center' }}>
+        <p style={{ margin: 0 }}>© 2023 ttagz. All rights reserved.</p>
+      </div>
     </div>
   );
 };
